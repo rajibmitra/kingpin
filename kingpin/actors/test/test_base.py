@@ -57,6 +57,25 @@ class TestBaseActor(testing.AsyncTestCase):
         # test
         self.actor._execute = self.true
 
+    def test_tokens(self):
+        user_supplied_tokens = {
+            'USER': 'user',
+            'COMMON': 'user'
+        }
+
+        parent_actor_supplied_tokens = {
+            'PARENT': 'parent',
+            'COMMON': 'parent'
+        }
+
+        self.actor = base.BaseActor(
+            tokens=user_supplied_tokens,
+            init_tokens=parent_actor_supplied_tokens)
+
+        self.assertEquals(
+            self.actor._tokens,
+            {'PARENT': 'parent', 'COMMON': 'user', 'USER': 'user'})
+
     @testing.gen_test
     def test_user_defined_desc(self):
         self.assertEquals('Unit Test Action', str(self.actor))

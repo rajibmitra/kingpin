@@ -50,6 +50,15 @@ SCHEMA_1_0 = {
             },
         },
 
+        # Not required. In code, defaults to {}.
+        'tokens': {
+            # Should be a Key/Value dict
+            'type': 'object',
+
+            # Since tokens are actor/code specific, we allow anything here.
+            'additionalProperties': True,
+        },
+
         # Not required. In code, will default to False.
         'warn_on_failure': {'type': ['boolean', 'string']},
 

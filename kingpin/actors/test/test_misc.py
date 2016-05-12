@@ -55,25 +55,26 @@ class TestMacro(testing.AsyncTestCase):
         # created (from outer_group.yaml) both have the appropriate init
         # tokens. This helps ensure that we used .copy() properly a well as the
         # fact that the tokens were passed down appropriately.
-        self.assertEquals(actor._init_tokens, init_tokens)
-        self.assertEquals(actor.initial_actor._init_tokens, init_tokens)
+        self.assertEquals(actor._tokens, init_tokens)
 
         # Ensure that the nested misc.Macro actor from outer_macro.yaml got
         # init_tokens, AND the 'FOO' token from outer_group.yaml's own
         # definition.
-        self.assertEquals(actor.initial_actor._actions[0]._init_tokens,
+        self.assertEquals(actor.initial_actor._tokens,
+                          {'SLEEP': 0, 'FOO': 'weee'})
+        self.assertEquals(actor.initial_actor._actions[0]._tokens,
                           {'SLEEP': 0, 'FOO': 'weee'})
 
         # Next ensure that the mostly nested examples/misc.macro/inner.yaml
         # actor got the SLEEP, FOO, and DESC tokens.
         self.assertEquals(
-            actor.initial_actor._actions[0].initial_actor._init_tokens,
+            actor.initial_actor._actions[0].initial_actor._tokens,
             {'SLEEP': 0, 'FOO': 'weee', 'DESC': 'Sleeping for a while'})
 
         # Finally, ensure the super nested
         s = actor.initial_actor._actions[0].initial_actor.initial_actor
         self.assertEquals(
-            s._init_tokens,
+            s._tokens,
             {'SLEEP': 0, 'FOO': 'weee', 'DESC': 'Sleeping for a while'})
 
     def test_init_remote(self):

@@ -2,7 +2,7 @@
 
 actor: misc.Macro
 desc: I need the %FOO% token
+tokens:
+  DESC: Sleeping for a while
 options:
   macro: examples/misc.macro/inner.yaml
-  tokens:
-    DESC: Sleeping for a while

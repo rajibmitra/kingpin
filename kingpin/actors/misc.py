@@ -98,14 +98,13 @@ class Macro(base.BaseActor):
 
     .. code-block:: json
 
-       { "desc": "Stage 1",
-         "actor": "misc.Macro",
+       { "actor": "misc.Macro",
+         "tokens": {
+           "TIMEOUT": 360,
+           "RELEASE": "%RELEASE%"
+         },
          "options": {
            "macro": "deployment/stage-1.json",
-           "tokens": {
-             "TIMEOUT": 360,
-             "RELEASE": "%RELEASE%"
-           }
          }
        }
 
@@ -125,17 +124,15 @@ class Macro(base.BaseActor):
         'macro': (str, REQUIRED,
                   "Path to a Kingpin script. http(s)://, file:///, "
                   "absolute or relative file paths."),
-        'tokens': (dict, {}, "Tokens passed into the JSON file.")
+        'tokens': (dict, {}, "Tokens passed into the JSON file. "
+                             "(Deprecated, pass tokens as a parameter, "
+                             "not an option.)")
     }
 
     desc = "Macro: {macro}"
 
     def __init__(self, *args, **kwargs):
-        """Pre-parse the script file and compile actors.
-
-        Note, we override the default init_tokens={} from the base class and
-        default it to a _copy_ of the os.environ dict.
-        """
+        """Pre-parse the script file and compile actors."""
         super(Macro, self).__init__(*args, **kwargs)
 
         # Temporary check that macro is a local file.
@@ -143,11 +140,11 @@ class Macro(base.BaseActor):
 
         self.log.info('Preparing actors from %s' % self.option('macro'))
 
-        # Take the "init tokens" that were supplied to this actor by its parent
-        # and merge them with the explicitly defined tokens in the actor
-        # definition itself. Give priority to the explicitly defined tokens on
-        # any conflicts.
-        self._init_tokens.update(self.option('tokens'))
+        # DEPRECATE IN v0.5.0
+        # If tokens were supplied in the options dict (a behavior we're
+        # deprecating), then manually update our self._tokens dict with that.
+        self._tokens.update(self.option('tokens'))
+        # END DEPRECATION
 
         # Copy the tmp file / download a remote macro
         macro_file = self._get_macro()
@@ -158,9 +155,11 @@ class Macro(base.BaseActor):
         # Check schema for compatibility
         self._check_schema(config)
 
-        # After the schema has been checked, pass in whatever tokens _we_ got,
-        # off to the soon-to-be-created actor.
-        config['init_tokens'] = self._init_tokens.copy()
+        # After the schema has been checked for user-allowed options, add our
+        # combined user and parent-actor supplied 'tokens' to the config dict.
+        # These will be passed into the 'init_tokens' parameter of the actor
+        # being instantiated.
+        config['init_tokens'] = self._tokens.copy()
 
         # Instantiate the first actor, but don't execute it.
         # Any errors raised by this actor should be attributed to it, and not
@@ -227,7 +226,7 @@ class Macro(base.BaseActor):
         try:
             return utils.convert_script_to_dict(
                 script_file=script_file,
-                tokens=self._init_tokens)
+                tokens=self._tokens)
         except (kingpin_exceptions.InvalidScript, LookupError) as e:
             raise exceptions.UnrecoverableActorFailure(e)
 

@@ -136,7 +136,7 @@ class BaseGroupActor(base.BaseActor):
         # as available token substitutions.
         elif isinstance(contexts, basestring):
             context_data = kp_utils.convert_script_to_dict(
-                contexts, self._init_tokens)
+                contexts, self._tokens)
 
         actions = []
         for context in context_data:
@@ -165,7 +165,7 @@ class BaseGroupActor(base.BaseActor):
         self.log.debug('Building %s actors' % len(self.option('acts')))
         for act in self.option('acts'):
             act['init_context'] = context.copy()
-            act['init_tokens'] = self._init_tokens.copy()
+            act['init_tokens'] = dict(self._tokens.items() + context.items())
             actor = utils.get_actor(act, dry=self._dry)
             actions.append(actor)
             self.log.debug('Actor %s built' % actor)
